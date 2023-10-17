@@ -3,33 +3,20 @@
 #include <algorithm>
 #include <fstream>
 #include <climits>
+#include <string>
 
 using namespace std;
-
-/**
- * @brief Kruskal's algorithm for finding the minimum spanning tree of a graph
- * 
- * @param edges The vector of edges of the graph
- * @param node_amount The number of nodes in the graph
- * @param init_vertex The initial vertex
- * @return vector<Edge> The vector of edges in the minimum spanning tree
-*/
-
-// Struct for storing the edges of the graph
 
 struct Edge
 {
     int src, dest, weight;
 };
 
-// Struct for storing the union-find data structure
-
-struct findUnion
+struct FindUnion
 {
     vector<int> parent, rank;
 
-
-    findUnion(int n)
+    FindUnion(int n)
     {
         parent.resize(n);
         rank.resize(n, 0);
@@ -38,16 +25,12 @@ struct findUnion
             parent[i] = i;
     }
 
-    // Find operation
-
     int Find(int v)
     {
         if (parent[v] != v)
             parent[v] = Find(parent[v]);
         return parent[v];
     }
-
-    // Union by rank
 
     void Union(int v, int u)
     {
@@ -67,31 +50,23 @@ struct findUnion
     }
 };
 
-// Comparator for sorting the edges
-
 bool compareEdges(const Edge &e1, const Edge &e2)
 {
     return e1.weight < e2.weight;
 }
-
-// Kruskal's algorithm
 
 vector<Edge> Kruskal(vector<Edge> &edges, int node_amount, int init_vertex)
 {
     vector<Edge> mst;
     sort(edges.begin(), edges.end(), compareEdges);
 
-    // Create the union-find data structure
-
-    findUnion union1(node_amount);
+    FindUnion union1(node_amount);
     union1.Union(init_vertex, init_vertex); // Connect the initial vertex to itself
 
     for (int i = 0; i < edges.size(); i++)
     {
         int srcParent = union1.Find(edges[i].src);
         int destParent = union1.Find(edges[i].dest);
-
-        // If the parents are different, then the edge is part of the MST
 
         if (srcParent != destParent)
         {
@@ -105,18 +80,17 @@ vector<Edge> Kruskal(vector<Edge> &edges, int node_amount, int init_vertex)
 
 void printHelp()
 {
-    cout << "Help:" << endl;
-    cout << "-h: shows help dialog" << endl;
-    cout << "-o <file>: redirects output to 'file'" << endl;
-    cout << "-f <file>: indicates the 'file' containing the input graph" << endl;
-    cout << "-s: shows the solution (ascending order)" << endl;
-    cout << "-i: initial vertex" << endl;
+    cout << "-h\t\tHelp:" << endl;
+    cout << "-o <arquivo>\tredirects output to 'file'" << endl;
+    cout << "-f <arquivo>\tindicates the 'file' containing the input graph" << endl;
+    cout << "-i\t\tinitial vertex" << endl;
+    cout << "-s\t\tshows the solution (ascending order)" << endl;
 }
 
 int main(int argc, char *argv[])
 {
-    string output_filename;
-    string input_filename;
+    string outputFilename;
+    string inputFilename;
     int init_vertex = 1;
     bool solution = false;
 
@@ -132,12 +106,12 @@ int main(int argc, char *argv[])
         {
             if (i + 1 < argc)
             {
-                output_filename = argv[i + 1];
+                outputFilename = argv[i + 1];
                 ++i;
             }
             else
             {
-                cerr << "Missing '-o' argument." << endl;
+                cerr << "Erro: Faltando o argumento para '-o'" << endl;
                 return 1;
             }
         }
@@ -145,12 +119,12 @@ int main(int argc, char *argv[])
         {
             if (i + 1 < argc)
             {
-                input_f = argv[i + 1];
+                inputFilename = argv[i + 1];
                 ++i;
             }
             else
             {
-                cerr << "Missing'-f' argument" << endl;
+                cerr << "Erro: Faltando o argumento para '-f'" << endl;
                 return 1;
             }
         }
@@ -164,20 +138,20 @@ int main(int argc, char *argv[])
         }
     }
 
-    int node_amount, edge_amount, u, v, weight;
+    int node_amount, numEdges, u, v, weight;
 
-    ifstream input_file(input_f);
+    ifstream inputFile(inputFilename);
 
-    input_file >> node_amount >> edge_amount;
+    inputFile >> node_amount >> numEdges;
 
-    vector<Edge> edges(edge_amount);
+    vector<Edge> edges(numEdges);
 
-    for (int i = 0; i < edge_amount; ++i)
+    for (int i = 0; i < numEdges; ++i)
     {
-        input_file >> u >> v >> weight;
+        inputFile >> u >> v >> weight;
         edges[i] = {u - 1, v - 1, weight};
     }
-    input_file.close();
+    inputFile.close();
 
     vector<Edge> mst = Kruskal(edges, node_amount, init_vertex - 1);
 
@@ -191,13 +165,13 @@ int main(int argc, char *argv[])
         finalcost += edge.weight;
     }
 
-    if (!output_filename.empty())
+    if (!outputFilename.empty())
     {
-        ofstream output_file(output_filename);
-        if (output_file.is_open())
+        ofstream outputFile(outputFilename);
+        if (outputFile.is_open())
         {
             streambuf *originalCoutBuffer = std::cout.rdbuf();
-            cout.rdbuf(output_file.rdbuf());
+            cout.rdbuf(outputFile.rdbuf());
 
             if (solution)
             {
@@ -216,7 +190,7 @@ int main(int argc, char *argv[])
                 cout << finalcost << endl;
 
             std::cout.rdbuf(originalCoutBuffer);
-            output_file.close();
+            outputFile.close();
         }
     }
     else
